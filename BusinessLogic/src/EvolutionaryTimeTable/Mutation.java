@@ -1,6 +1,5 @@
 package EvolutionaryTimeTable;
 
-
 import Base.*;
 import generated.ETTMutation;
 
@@ -25,14 +24,9 @@ public class Mutation {
     public void mutation(OptionalSolution population, TimeTable timeTable)
     {
         int rndIndx;
-        Raw raw;
         int count = rnd.nextInt(Integer.parseInt(configuration.get("MaxTupples"))) + 1;
         List<Integer> mutations = new LinkedList<>();
 
-        if(population.getOptionalSolution().size() <= 0)
-        {
-            return;
-        }
         for (int i = 0; i < count; i++)
         {
             do {

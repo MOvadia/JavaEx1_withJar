@@ -1,6 +1,5 @@
 package Base;
 
-
 import generated.ETTRule;
 
 import java.util.HashMap;
@@ -12,7 +11,7 @@ public class Rule {
     public enum Id {TeacherIsHuman, Singularity, Knowledgeable, Satisfactory}
 
     private Id id;
-    private Map<String,String> configuration = new HashMap<>(); //TODO: MAY T checking it
+    private Map<String,String> configuration = new HashMap<>();
     private Type type;
     private int ruleScore = 0;
 

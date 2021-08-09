@@ -1,6 +1,8 @@
 package Base;
 
-import EvolutionaryTimeTable.*;
+import EvolutionaryTimeTable.DayHour;
+import EvolutionaryTimeTable.EvolutionEngine;
+import EvolutionaryTimeTable.OptionalSolution;
 
 import java.util.List;
 import java.util.Map;

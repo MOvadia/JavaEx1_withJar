@@ -1,7 +1,9 @@
 package EvolutionaryTimeTable;
 
-import Base.*;
-import generated.*;
+import Base.Raw;
+import Base.StringToMap;
+import Base.TimeTable;
+import generated.ETTCrossover;
 
 import java.util.*;
 import java.util.stream.Collectors;

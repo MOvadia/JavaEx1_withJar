@@ -1,14 +1,9 @@
 package Menu;
 
-import Base.DataTransferObject;
-import Base.Engine;
-import Base.Raw;
-import Base.SystemEngine;
+import Base.*;
 import EvolutionaryTimeTable.DayHour;
 import Exceptions.*;
-import Menu.Results.ClassTimeTableView;
-import Menu.Results.TeacherTimeTableView;
-import Menu.Results.TimeTableView;
+import Menu.Results.*;
 
 import java.util.List;
 import java.util.Map;
@@ -21,6 +16,9 @@ public class Menu {
     private String errNum = "Input is invalid, pleas enter a integer\n";
     private String errRange = "Input is invalid, please enter a number between 1 to";
     private String errLoadXML = "You must first upload an XML file\n";
+    private int numOfGenerations;
+    private int whenToShow;
+  //  private boolean confirm = false;
 
     public void startMenu() {
         Boolean toContinue = true;
@@ -58,12 +56,22 @@ public class Menu {
     public void getXmlPathFromUser() {
         System.out.println("Please enter XML full path");
         String xmlPath = userInput.nextLine();
-        try {
-            DataTransferObject dto = systemEngine.readXML(xmlPath);
-            System.out.println(dto.getMessage());
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            System.out.println("operation failed.\n");
+        boolean toContinue = true;
+        boolean confirm = false;
+        while (toContinue) {
+            try {
+                DataTransferObject dto = systemEngine.readXML(xmlPath, confirm);
+                System.out.println(dto.getMessage());
+                toContinue = false;
+            } catch (UserMustConfirmException e) {
+                System.out.println(e.getMessage());
+                confirm = confirmStartEvolutionAlgorithm();
+                toContinue = confirm;
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+                System.out.println("operation failed.\n");
+                toContinue = false;
+            }
         }
     }
 
@@ -80,10 +88,7 @@ public class Menu {
 
     public void checkAndStartEvolutionAlgorithm() {
         boolean toContinue = true;
-        int numOfGenerations;
-        int whenToShow;
         boolean confirm = false;
-
         while (toContinue) {
             System.out.println("please enter the number of generations (must be a integer > " + this.systemEngine.getMinNumGeneration() + "): ");
             numOfGenerations = stringToInt();
@@ -92,11 +97,13 @@ public class Menu {
             try {
                 systemEngine.startEvolutionAlgorithm(numOfGenerations,whenToShow, confirm);
                 toContinue = false;
+                System.out.println("The algorithm started running in the background successfully.\n");
             } catch (WrongValueException e) {
                 System.out.println(e.getMessage());
             }
             catch (UserMustConfirmException e)
             {
+                System.out.println(e.getMessage());
                 confirm = confirmStartEvolutionAlgorithm();
                 toContinue = confirm;
             }
@@ -110,18 +117,19 @@ public class Menu {
 
     public boolean confirmStartEvolutionAlgorithm() {
         boolean retVal = false;
-        System.out.println("There are previous results in the system.\n" + "Do you want to restart the algorithm?\n"
-                + "choose number from the list:\n" + "1 - I confirm\n" + "2 - I don't confirm, return to the main menu\n");
-        operation = stringToInt();
-        switch (operation) {
-            case 1:
-                retVal = true;
-                break;
-            case 2:
-                retVal = false;
-                break;
-            default:
-                System.out.println(errRange + " 2\n");
+            System.out.println("Do you want to restart the algorithm?\n" + "choose number from the list:\n"
+                    + "1 - I confirm\n" + "2 - I don't confirm, return to the main menu\n");
+            operation = stringToInt();
+            switch (operation) {
+                case 1:
+                    retVal = true;
+                    break;
+                case 2:
+                    retVal = false;
+                    System.out.println("Your reply has been received. Return to the main menu.\n");
+                    break;
+                default:
+                    System.out.println(errRange + " 2\n");
         }
         return retVal;
     }
@@ -185,3 +193,4 @@ public class Menu {
         return num;
     }
 }
+

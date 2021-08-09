@@ -2,7 +2,8 @@ package EvolutionaryTimeTable;
 
 import Base.Raw;
 import Base.TimeTable;
-import generated.*;
+import generated.ETTEvolutionEngine;
+import generated.ETTMutation;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -27,11 +28,17 @@ public class EvolutionEngine {
         }
     }
 
-    public Map<Integer, Population> getGenerations() {
+    public synchronized void initialize()
+    {
+        generations = new HashMap<>();
+        theBestSolution = null;
+    }
+
+    public synchronized Map<Integer, Population> getGenerations() {
         return generations;
     }
 
-    public void startCrossover(TimeTable timeTable, Population theElected){
+    public void startCrossover(TimeTable timeTable,Population theElected){
         OptionalSolution parent1, parent2;
         int randomIndex1,randomIndex2;
         Crossover crossover = getCrossover();
@@ -60,10 +67,17 @@ public class EvolutionEngine {
             newGeneration.solutions.add(children1);
             newGeneration.solutions.add(children2);
         }
+
+
+        theElected.getTheBestSolution().setGeneration(new Integer(generations.size()));
         checkAndsSetTheBestSolution(theElected.getTheBestSolution());
-        this.generations.get(generations.size()).setTheBestSolution(theElected.getTheBestSolution());
-        this.generations.get(generations.size()).clearSolutions();
-        this.generations.put(generations.size()+1, newGeneration);
+
+
+        synchronized (generations) {
+            this.generations.get(generations.size()).setTheBestSolution(theElected.getTheBestSolution());
+            this.generations.get(generations.size()).clearSolutions();
+            this.generations.put(generations.size() + 1, newGeneration);
+        }
     }
 
     private List<Integer> randomCuttingPoints(int range)
@@ -109,11 +123,11 @@ public class EvolutionEngine {
         return newPopulation;
     }
 
-    public OptionalSolution getTheBestSolution() {
+    public synchronized OptionalSolution getTheBestSolution() {
         return theBestSolution;
     }
 
-    public void checkAndsSetTheBestSolution(OptionalSolution theBestSolution) {
+    public synchronized void checkAndsSetTheBestSolution(OptionalSolution theBestSolution) {
         if (this.theBestSolution == null)
         {
             this.theBestSolution = theBestSolution;

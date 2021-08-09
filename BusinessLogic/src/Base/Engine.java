@@ -1,6 +1,5 @@
 package Base;
 
-
 import DataLoader.XmlLoader;
 import EvolutionaryTimeTable.EvolutionEngine;
 import EvolutionaryTimeTable.OptionalSolution;
@@ -14,49 +13,96 @@ import java.io.FileNotFoundException;
 import java.util.*;
 
 public class Engine implements SystemEngine{
-    private Base.TimeTable timeTable;
+    private TimeTable timeTable;
     private EvolutionEngine evolutionEngine;
     private XmlLoader xml;
     private int generationNum = 0;
-    private boolean isExistsSolution = false;
+    private Boolean isExistsFullSolution = new Boolean(false);
     private int whenToShow;
     private final int MIN_NUM_OF_GENERATION = 100;
+    Thread thread = new EvolutionAlgorithmTread();
+    Boolean toStop = new Boolean(false);
+
+    public class EvolutionAlgorithmTread extends Thread{
+        @Override
+        public void run() {
+            isExistsFullSolution = false;
+            initialPopulation();
+            for(int i = 0; i < generationNum; i++) {
+                synchronized (toStop){
+                    if(toStop == true)
+                    {
+                        break;
+                    }
+                }
+                evolutionEngine.calculateFitness(timeTable);
+                Population theElected = evolutionEngine.startSelection();
+                evolutionEngine.startCrossover(timeTable, theElected);
+                evolutionEngine.startMutation(timeTable);
+            }
+            synchronized (toStop) {
+                if (toStop == false) {
+                    isExistsFullSolution = true;
+                }
+            }
+        }
+    }
 
     @Override
-    public Base.DataTransferObject readXML(String xmlPath) throws JAXBException, FileNotFoundException {
+    public DataTransferObject readXML(String xmlPath, boolean confirm) throws JAXBException, FileNotFoundException {
+        if (thread.getState() == Thread.State.RUNNABLE && !confirm)
+        {
+            throw new UserMustConfirmException(false,true);
+        }
+        else if(thread.getState() == Thread.State.RUNNABLE && confirm)
+        {
+            synchronized (toStop) {
+                toStop = true;
+            }
+
+            while (thread.getState() == Thread.State.RUNNABLE)
+            {
+                //busy wait....
+            }
+        }
         XmlLoader tmpXML = new XmlLoader();
         tmpXML.setXmlPath(xmlPath);
-        Base.TimeTable tmpT = new Base.TimeTable(tmpXML.getDescriptor());
+        TimeTable tmpT = new TimeTable(tmpXML.getDescriptor());
         EvolutionEngine tmpE = new EvolutionEngine(tmpXML.getDescriptor().getETTEvolutionEngine());
         xml = tmpXML;
         timeTable = tmpT;
         evolutionEngine = tmpE;
-        return new Base.DataTransferObject("The XML file was successfully uploaded to the system.\n");
+        isExistsFullSolution = new Boolean(false);
+        return new DataTransferObject("The XML file was successfully uploaded to the system.\n");
     }
 
     @Override
-    public Base.DataTransferObject showSettingAndProperties() throws SomethingDoesntExistException {
+    public DataTransferObject showSettingAndProperties() throws SomethingDoesntExistException {
         if(!isExistsXML())
         {
             throw new SomethingDoesntExistException("XML file");
         }
-        return new Base.DataTransferObject(timeTable,evolutionEngine);
+        return new DataTransferObject(timeTable,evolutionEngine);
     }
 
     @Override
     public void startEvolutionAlgorithm(int generationNum, int whenToShow, boolean confirm) throws WrongValueException, SomethingDoesntExistException, UserMustConfirmException {
+        if (thread.getState() == Thread.State.RUNNABLE && !confirm)
+        {
+            throw new UserMustConfirmException(false,true);
+        }
+        if(isExistsFullSolution && !confirm)
+        {
+            throw new UserMustConfirmException(true,false);
+        }
         if(!isExistsXML())
         {
             throw new SomethingDoesntExistException("XML file");
         }
-        if(isExistsSolution && !confirm)
-        {
-            throw new UserMustConfirmException();
-        }
-     /*   if(generationNum <=100)
+        if(generationNum <=100)
         {
             throw new WrongValueException(generationNum);
-        } */
+        }
         if(whenToShow < 1)
         {
             throw new WrongValueException(whenToShow);
@@ -64,14 +110,27 @@ public class Engine implements SystemEngine{
         this.generationNum = generationNum;
         this.whenToShow = whenToShow;
 
-        initialPopulation();
-        for(int i = 0; i < generationNum; i++) {
-            this.evolutionEngine.calculateFitness(timeTable);
-            Population theElected = this.evolutionEngine.startSelection();
-            this.evolutionEngine.startCrossover(this.timeTable, theElected);
-            this.evolutionEngine.startMutation(this.timeTable);
+       if(thread.getState() == Thread.State.RUNNABLE)
+       {
+           synchronized (toStop) {
+               toStop = true;
+           }
+       }
+
+       while (thread.getState() == Thread.State.RUNNABLE)
+       {
+           //busy wait....
+       }
+
+        if(thread.getState() == Thread.State.TERMINATED) {
+            thread = new EvolutionAlgorithmTread();
         }
-        isExistsSolution = true;
+        if (thread.getState() == Thread.State.NEW)
+       {
+           toStop = false;
+           evolutionEngine.initialize();
+           thread.start();
+       }
     }
 
     private void initialPopulation()
@@ -83,20 +142,22 @@ public class Engine implements SystemEngine{
             initialPopulation.add(solution);
         }
         Population population= new Population(evolutionEngine.getInitialPopulation(),initialPopulation);
-        int numOfGenerations = evolutionEngine.getGenerations().size() + 1;
-        evolutionEngine.getGenerations().put(numOfGenerations,population);
+        synchronized (evolutionEngine.getGenerations()) {
+            int numOfGenerations = evolutionEngine.getGenerations().size() + 1;
+            evolutionEngine.getGenerations().put(numOfGenerations, population);
+        }
     }
 
     private OptionalSolution creatOptionalSolution()
     {
         Random rnd = new Random();
-        Map<Integer, Base.Raw> optionalSolution = new HashMap<>();
+        Map<Integer, Raw> optionalSolution = new HashMap<>();
         int optionalSolutionSize = rnd.nextInt(timeTable.getDays() * timeTable.getHours() * timeTable.getMaxCT());
         optionalSolutionSize = optionalSolutionSize + (timeTable.getDays() * timeTable.getHours() * timeTable.getMinCT());
 
         for(int i = 1; i <= optionalSolutionSize; i++)
         {
-            Base.Raw raw = creatRaw();
+            Raw raw = creatRaw();
             if(!optionalSolution.containsValue(raw))
             {
                 optionalSolution.put(i,raw);
@@ -110,75 +171,105 @@ public class Engine implements SystemEngine{
         return solution;
     }
 
-    private Base.Raw creatRaw()
+    private Raw creatRaw()
     {
         int rndDay = this.timeTable.randomDay();
         int rndHour = this.timeTable.randomHour();
-        Base.Teacher rndTeacher = this.timeTable.randomTeacher();
-        Base.Subject rndSubject = this.timeTable.randomSubject();
-        Base.SchoolClass rndClass = this.timeTable.randomSchoolClass();
+        Teacher rndTeacher = this.timeTable.randomTeacher();
+        Subject rndSubject = this.timeTable.randomSubject();
+        SchoolClass rndClass = this.timeTable.randomSchoolClass();
 
-        Base.Raw raw = new Base.Raw(rndDay,rndHour,rndTeacher,rndSubject,rndClass);
+        Raw raw = new Raw(rndDay,rndHour,rndTeacher,rndSubject,rndClass);
         return raw;
     }
 
 
     @Override
-    public Base.DataTransferObject showBestSolution(String solutionToString) throws SomethingDoesntExistException{
+    public DataTransferObject showBestSolution(String solutionToString) throws SomethingDoesntExistException{
         if(!isExistsXML())
         {
             throw new SomethingDoesntExistException("XML file");
         }
-        if(!isExistsSolution)
-        {
-            throw new SomethingDoesntExistException("solution");
+        synchronized (evolutionEngine.getGenerations()) {
+            if (evolutionEngine.getGenerations().size() == 0) {
+                throw new SomethingDoesntExistException("solution");
+            }
         }
 
         evolutionEngine.getTheBestSolution().setSolutionToString(solutionToString);
-        return new Base.DataTransferObject(evolutionEngine.getTheBestSolution().toString());
+        return new DataTransferObject(evolutionEngine.getTheBestSolution().toString());
     }
 
-    public Base.DataTransferObject getBestSolutionTable(String solutionToString) throws SomethingDoesntExistException{
+
+    public DataTransferObject getBestSolutionTable(String solutionToString) throws SomethingDoesntExistException{
         if(!isExistsXML())
         {
             throw new SomethingDoesntExistException("XML file");
         }
-        if(!isExistsSolution)
-        {
-            throw new SomethingDoesntExistException("solution");
+        synchronized (evolutionEngine.getGenerations()) {
+            if (evolutionEngine.getGenerations().size() == 0) {
+                throw new SomethingDoesntExistException("solution");
+            }
         }
 
         evolutionEngine.getTheBestSolution().setSolutionToString(solutionToString);
-        return new Base.DataTransferObject(evolutionEngine.getTheBestSolution().getTablePerIdentifier(), this.timeTable);
+        return new DataTransferObject(evolutionEngine.getTheBestSolution().getTablePerIdentifier(), this.timeTable);
     }
 
     @Override
-    public Base.DataTransferObject showAlgorithmProcess() throws SomethingDoesntExistException {
+    public DataTransferObject showAlgorithmProcess() throws SomethingDoesntExistException {
         if (!isExistsXML()) {
             throw new SomethingDoesntExistException("XML file");
         }
-        if (evolutionEngine.getGenerations().size() == 0) {
-            throw new SomethingDoesntExistException("generations");
+        synchronized (evolutionEngine.getGenerations()) {
+            if (evolutionEngine.getGenerations().size() <= 10) {
+                throw new SomethingDoesntExistException("generations");
+            }
         }
-
         List<String> strings = new LinkedList<>();
-        for (int i = 1; i <= generationNum; i++) {
+        int previousIdx = 0;
+        int size = 0;
+        synchronized (isExistsFullSolution)
+        {
+            if(isExistsFullSolution){
+                synchronized (evolutionEngine.getGenerations())
+                {
+                    size = evolutionEngine.getGenerations().size() - 1;
+                }
+            }
+            else {
+                synchronized (evolutionEngine.getGenerations())
+                {
+                    size = evolutionEngine.getGenerations().size() - 10;
+                }
+            }
+        }
+        for (int i = 1; i <= size; i++) {
             if (i % this.whenToShow == 0) {
                 Double newScore = this.evolutionEngine.getGenerations().get(i).getTheBestSolution().getFitness();
-                String st = "Fitness score: " + newScore;
-                if (this.evolutionEngine.getGenerations().get(i - 1) != null) {
-                    Double lastScore = this.evolutionEngine.getGenerations().get(i - 1).getTheBestSolution().getFitness();
-                    if (newScore - lastScore >= 0) {
-                        double improvement = newScore - lastScore;
-                        st += "\nThe score improved by: " + improvement;
-                    } else if (newScore - lastScore < 0) {
-                        double decreased = newScore - lastScore;
-                        st += "\nThe score decreased by: " + decreased;
+                String st = "Generation: " + this.evolutionEngine.getGenerations().get(i).getTheBestSolution().getGeneration() +
+                        "\n" + "Fitness score: " + newScore;
+                if (previousIdx != 0) {
+                    Double lastScore = this.evolutionEngine.getGenerations().get(previousIdx).getTheBestSolution().getFitness();
+                    Double res =new Double(newScore - lastScore);
+                    if (res > 0.0) {
+                        st += "\nThe score improved by: " + res;
+                    } else if (res < 0.0) {
+                        st += "\nThe score decreased by: " + res;
+                    }
+                    else {
+                        st += "\nThere is no improvement from the previous generation";
                     }
                 }
+                previousIdx = i;
                 strings.add(st);
                 strings.add("-----------------------");
             }
+        }
+        if(strings.size() == 0)
+        {
+            strings.add("The number: " + this.whenToShow + " you have chosen is greater than the current number of generations: " +
+                    size + "\n");
         }
         String st = strings.toString();
         String formatter = st.replace("{", "")
@@ -187,13 +278,24 @@ public class Engine implements SystemEngine{
                 .replace(",", "\n")
                 .replace("[", "")
                 .trim();
-        return new Base.DataTransferObject(formatter);
+        return new DataTransferObject(formatter);
     }
 
 
     @Override
-    public Base.DataTransferObject exit() {
-        return new Base.DataTransferObject("bye bye...");
+    public DataTransferObject exit() {
+        if(thread.getState() == Thread.State.RUNNABLE)
+        {
+            synchronized (toStop) {
+                toStop = true;
+            }
+
+            while (thread.getState() == Thread.State.RUNNABLE)
+            {
+                //busy wait....
+            }
+        }
+        return new DataTransferObject("bye bye...");
     }
 
     public boolean isExistsXML()
@@ -207,11 +309,11 @@ public class Engine implements SystemEngine{
     }
 
     @Override
-    public Base.DataTransferObject getTimeTable() {
-        return new Base.DataTransferObject(this.timeTable);
+    public DataTransferObject getTimeTable() {
+        return new DataTransferObject(this.timeTable);
     }
     @Override
-    public Base.DataTransferObject getBestSolutionTable(){
-        return new Base.DataTransferObject(this.evolutionEngine.getTheBestSolution());
+    public DataTransferObject getBestSolutionTable(){
+        return new DataTransferObject(this.evolutionEngine.getTheBestSolution());
     }
 }

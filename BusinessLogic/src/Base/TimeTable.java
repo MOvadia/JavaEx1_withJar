@@ -19,7 +19,7 @@ public class TimeTable {
     private Map<Integer, Teacher> teachers = new HashMap<>();
     private Map<Integer, Subject> subjects = new HashMap<>();
     private Map<Integer, SchoolClass> classes = new HashMap<>();
-    private Map<Base.Rule.Id, Base.Rule> rules = new HashMap<>();
+    private Map<Rule.Id, Rule> rules = new HashMap<>();
     private Random rnd = new Random();
 
     public TimeTable(ETTDescriptor descriptor) {
@@ -48,7 +48,7 @@ public class TimeTable {
         return classes;
     }
 
-    public Map<Base.Rule.Id, Base.Rule> getRules() {
+    public Map<Rule.Id, Rule> getRules() {
         return rules;
     }
 
@@ -117,10 +117,10 @@ public class TimeTable {
 
     private void checkAndInsertRules(List<ETTRule> rule) throws DuplicateValException {
         for (ETTRule i : rule) {
-            if (this.rules.containsKey(Base.Rule.Id.valueOf(i.getETTRuleId()))) {
-                throw new DuplicateValException(i.getETTRuleId(), Base.Rule.class);
+            if (this.rules.containsKey(Rule.Id.valueOf(i.getETTRuleId()))) {
+                throw new DuplicateValException(i.getETTRuleId(), Rule.class);
             } else {
-                Base.Rule newRule = new Base.Rule(i);
+                Rule newRule = new Rule(i);
                 this.rules.put(newRule.getId(), newRule);
             }
         }

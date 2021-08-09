@@ -13,7 +13,7 @@ import java.io.InputStream;
 
 
 public class XmlLoader {
-    private final static String JAXB_XML_PACKAGE_NAME = "generated";
+    private final static String JAXB_XML_PACKAGE_NAME = "jaxb.schema.generated";
     private String xmlPath;
     private ETTDescriptor descriptor;
 

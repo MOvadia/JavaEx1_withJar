@@ -5,11 +5,11 @@ import java.util.Objects;
 public class Raw {
     private Integer day;
     private Integer hour;
-    private Base.Teacher teacher;
-    private Base.Subject subject;
-    private Base.SchoolClass schoolClass;
+    private Teacher teacher;
+    private Subject subject;
+    private SchoolClass schoolClass;
 
-    public Raw(Integer day, Integer hour, Base.Teacher teacher, Base.Subject subject, Base.SchoolClass schoolClass) {
+    public Raw(Integer day, Integer hour, Teacher teacher, Subject subject, SchoolClass schoolClass) {
         this.day = day;
         this.hour = hour;
         this.teacher = teacher;
@@ -20,9 +20,9 @@ public class Raw {
     public Raw(Raw raw) {
         this.day = raw.getDay();
         this.hour = raw.getHour();
-        this.teacher = new Base.Teacher(raw.getTeacher());
-        this.subject = new Base.Subject(raw.getSubject());
-        this.schoolClass = new Base.SchoolClass(raw.getSchoolClass());
+        this.teacher = new Teacher(raw.getTeacher());
+        this.subject = new Subject(raw.getSubject());
+        this.schoolClass = new SchoolClass(raw.getSchoolClass());
     }
 
     public Integer getDay() {
@@ -41,19 +41,19 @@ public class Raw {
         this.hour = hour;
     }
 
-    public void setTeacher(Base.Teacher teacher) {
+    public void setTeacher(Teacher teacher) {
         this.teacher = teacher;
     }
 
-    public void setSubject(Base.Subject subject) {
+    public void setSubject(Subject subject) {
         this.subject = subject;
     }
 
-    public void setSchoolClass(Base.SchoolClass schoolClass) {
+    public void setSchoolClass(SchoolClass schoolClass) {
         this.schoolClass = schoolClass;
     }
 
-    public Base.Teacher getTeacher() {
+    public Teacher getTeacher() {
         return teacher;
     }
 
@@ -65,7 +65,7 @@ public class Raw {
         return subject.getId();
     }
 
-    public Base.Subject getSubject() {
+    public Subject getSubject() {
         return subject;
     }
 
@@ -73,7 +73,7 @@ public class Raw {
         return schoolClass.getId();
     }
 
-    public Base.SchoolClass getSchoolClass() {
+    public SchoolClass getSchoolClass() {
         return schoolClass;
     }
 

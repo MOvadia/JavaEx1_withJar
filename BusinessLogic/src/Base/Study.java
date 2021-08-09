@@ -4,10 +4,10 @@ import java.util.Objects;
 
 public class Study {
     private final int hours;
-    private final Base.Subject subject;
+    private final Subject subject;
     private int subjectID;
 
-    public Study(int hours, Base.Subject subject, int subjectId) {
+    public Study(int hours, Subject subject, int subjectId) {
         this.hours = hours;
         this.subject = subject;
         this.subjectID = subjectId;
@@ -15,7 +15,7 @@ public class Study {
 
     public Study(Study study) {
         this.hours = study.getHours();
-        this.subject = new Base.Subject(study.getSubject());
+        this.subject = new Subject(study.getSubject());
         this.subjectID = study.getSubjectID();
     }
 
@@ -23,7 +23,7 @@ public class Study {
         return hours;
     }
 
-    public Base.Subject getSubject() {
+    public Subject getSubject() {
         return subject;
     }
 

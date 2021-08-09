@@ -1,7 +1,5 @@
 package EvolutionaryTimeTable;
 
-import Base.Raw;
-import Base.TimeTable;
 import Base.*;
 
 import java.text.DecimalFormat;
@@ -22,13 +20,12 @@ public class OptionalSolution {
             }
 
             public String rawToString(Raw raw) {
-                return "Raw{" +
-                        "day=" + raw.getDay() +
-                        ", hour=" + raw.getHour() +
-                        "\nSubject=" + raw.getSubject() +
-                        "Teacher=" + raw.getTeacher().toStringIdName() +
-                        "\nSchoolClass=" + raw.getSchoolClass().toStringIdName() +
-                        '}' + "\n";
+                return "< day: " + raw.getDay() +
+                        " ,hour: " + raw.getHour() +
+                        " ,class: " + raw.getSchoolClass().getId() +
+                        " ,teacher: " + raw.getTeacher().getId() +
+                        " ,subject: " + raw.getSubject().getId() +
+                        " >" + "\n";
             }
             //@Override
             //public Map<DayHour, List<Raw>> getTablePerIdentifier(Map<Integer, Raw>  optionalSolution){return  null;}
@@ -122,7 +119,19 @@ public class OptionalSolution {
     private SolutionToString solutionToString;
     private double avgHardRules;
     private double avgSoftRules;
+    private Integer generation;
     private Map<Rule, Double> fitnessForRule;
+
+    public OptionalSolution(Map<Integer, Raw> optionalSolution, Map<Rule.Id, Rule> rules, Map<Integer, SchoolClass> classes, int hardRulesWeight, TimeTable timeTable) {
+        this.optionalSolution = optionalSolution;
+        this.rules = rules;
+        this.classes = classes;
+        this.hoursAmount = initialHourAmountMap();
+        this.HARD_RULES_WEIGHT = hardRulesWeight;
+        this.solutionToString = SolutionToString.RAW;
+        this.timeTable = timeTable;
+        this.fitnessForRule = new HashMap<>();
+    }
 
     public Map<Rule.Id, Rule> getRules() {
         return rules;
@@ -144,19 +153,18 @@ public class OptionalSolution {
         return hoursAmount;
     }
 
-    public OptionalSolution(Map<Integer, Raw> optionalSolution, Map<Rule.Id, Rule> rules, Map<Integer, SchoolClass> classes, int hardRulesWeight, TimeTable timeTable) {
-        this.optionalSolution = optionalSolution;
-        this.rules = rules;
-        this.classes = classes;
-        this.hoursAmount = initialHourAmountMap();
-        this.HARD_RULES_WEIGHT = hardRulesWeight;
-        this.solutionToString = SolutionToString.RAW;
-        this.timeTable = timeTable;
-        this.fitnessForRule = new HashMap<>();
-    }
+
 
     public void setSolutionToString(String solutionToString) {
         this.solutionToString = SolutionToString.valueOf(solutionToString);
+    }
+
+    public Integer getGeneration() {
+        return generation;
+    }
+
+    public void setGeneration(Integer generation) {
+        this.generation = generation;
     }
 
     public TimeTable getTimeTable() {
@@ -208,10 +216,10 @@ public class OptionalSolution {
         int countHardRules = 0;
         int countSoftRules = 0;
         for (Rule rule: fitnessForRule.keySet()) {
-            if(rule.getType() == Rule.Type.HARD){
+            if (rule.getType() == Rule.Type.HARD) {
                 sumRulesPenaltyHard += fitnessForRule.get(rule);
                 countHardRules++;
-            }else{
+            } else {
                 sumRulesPenaltySoft += fitnessForRule.get(rule);
                 countSoftRules++;
             }
@@ -359,12 +367,12 @@ public class OptionalSolution {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         OptionalSolution that = (OptionalSolution) o;
-        return HARD_RULES_WEIGHT == that.HARD_RULES_WEIGHT && Double.compare(that.fitness, fitness) == 0 && Objects.equals(optionalSolution, that.optionalSolution) && Objects.equals(rules, that.rules) && Objects.equals(classes, that.classes) && Objects.equals(hoursAmount, that.hoursAmount) && solutionToString == that.solutionToString;
+        return Double.compare(that.avgHardRules, avgHardRules) == 0 && Double.compare(that.avgSoftRules, avgSoftRules) == 0;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(HARD_RULES_WEIGHT, optionalSolution, rules, classes, hoursAmount, fitness, solutionToString);
+        return Objects.hash(avgHardRules, avgSoftRules);
     }
 
     public Double getFitness() {
@@ -376,7 +384,7 @@ public class OptionalSolution {
     }
 
     public String rulesFitnessToString(){
-        String ruleStr = "The Rules that tested:\n";
+        String ruleStr = "Generation: " + this.getGeneration() + "\nThe Rules that tested:\n";
         for (Rule rule: this.fitnessForRule.keySet()) {
             ruleStr += rule.toString() + "rule score: " + this.fitnessForRule.get(rule) + "\n";
         }
@@ -401,7 +409,7 @@ public class OptionalSolution {
                 .replace("}", "")
                 .replace("]", "")
                 .replace("[", "")
-                .replace(",", "")
+                .replace(", ", "")
                 .trim();
         return formatter;
     }

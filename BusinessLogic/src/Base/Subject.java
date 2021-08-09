@@ -1,6 +1,5 @@
 package Base;
 
-
 import generated.ETTSubject;
 
 import java.util.Objects;

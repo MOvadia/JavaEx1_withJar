@@ -10,16 +10,16 @@ import java.util.Objects;
 public class Teacher {
     private final int id;
     private final String name;
-    private Map<Integer, Base.Subject> subjects;
+    private Map<Integer,Subject> subjects;
 
-    public Teacher(ETTTeacher teacher, Map<Integer, Base.Subject> subjects) {
+    public Teacher(ETTTeacher teacher, Map<Integer,Subject> subjects) {
         this.id = teacher.getId();
         this.name = teacher.getETTName();
         this.subjects = new HashMap<>();
 
         for (ETTTeaches i: teacher.getETTTeaching().getETTTeaches())
         {
-           Base.Subject newSubject = subjects.get(i.getSubjectId()) ;
+           Subject newSubject = subjects.get(i.getSubjectId()) ;
            this.subjects.put(i.getSubjectId(),newSubject);
         }
     }
@@ -38,7 +38,7 @@ public class Teacher {
         return name;
     }
 
-    public Map<Integer, Base.Subject> getSubjects() {
+    public Map<Integer, Subject> getSubjects() {
         return subjects;
     }
 
