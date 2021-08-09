@@ -12,6 +12,7 @@ import javax.xml.bind.JAXBException;
 import java.io.FileNotFoundException;
 import java.text.DecimalFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Engine implements SystemEngine{
     private TimeTable timeTable;
@@ -223,51 +224,52 @@ public class Engine implements SystemEngine{
             throw new SomethingDoesntExistException("XML file");
         }
         synchronized (evolutionEngine.getGenerations()) {
-            if (evolutionEngine.getGenerations().size() <= 10) {
+            if (evolutionEngine.getGenerations().size() == 0) {
                 throw new SomethingDoesntExistException("generations");
             }
         }
         List<String> strings = new LinkedList<>();
-        int previousIdx = 0;
         int size = 0;
-        synchronized (isExistsFullSolution)
-        {
-            if(isExistsFullSolution){
-                synchronized (evolutionEngine.getGenerations())
+        List<Population> generationsToPrint;
+        synchronized (isExistsFullSolution) {
+            synchronized (evolutionEngine.getGenerations()) {
+                size = evolutionEngine.getGenerations().size() - 1;
+                generationsToPrint = evolutionEngine.getGenerations().values().stream().limit(size).collect(Collectors.toList());
+                if(isExistsFullSolution)
                 {
-                    size = evolutionEngine.getGenerations().size() - 1;
+                    generationsToPrint = generationsToPrint.stream().filter(population -> population.getTheBestSolution().getGeneration() % whenToShow == 0).collect(Collectors.toList());
                 }
-            }
-            else {
-                synchronized (evolutionEngine.getGenerations())
+                else
                 {
-                    size = evolutionEngine.getGenerations().size() - 10;
+                    generationsToPrint = generationsToPrint.stream().filter(population -> population.getTheBestSolution().getGeneration() % whenToShow == 0)
+                            .sorted((a,b)->b.getTheBestSolution().getGeneration().compareTo(a.getTheBestSolution().getGeneration())).
+                                limit(10).collect(Collectors.toList());
+                    generationsToPrint = generationsToPrint.stream().sorted((b,a)->b.getTheBestSolution().getGeneration().compareTo(a.getTheBestSolution().getGeneration()))
+                            .collect(Collectors.toList());
                 }
             }
         }
+
         DecimalFormat df = new DecimalFormat("###.#");
-        for (int i = 1; i <= size; i++) {
-            if (i % this.whenToShow == 0) {
-                Double newScore = this.evolutionEngine.getGenerations().get(i).getTheBestSolution().getFitness();
-                String st = "Generation: " + this.evolutionEngine.getGenerations().get(i).getTheBestSolution().getGeneration() +
-                        "\n" + "Fitness score: " + df.format(newScore);
-                if (previousIdx != 0) {
-                    Double lastScore = this.evolutionEngine.getGenerations().get(previousIdx).getTheBestSolution().getFitness();
-                    Double res =new Double(newScore - lastScore);
-                    if (res > 0.0) {
-                        st += "\nThe score improved by: " + df.format(res);
-                    } else if (res < 0.0) {
-                        st += "\nThe score decreased by: " + df.format(res);
-                    }
-                    else {
-                        st += "\nThere is no improvement from the previous generation";
-                    }
+        for (int i = 0; i < generationsToPrint.size(); i++) {
+            Double newScore = generationsToPrint.get(i).getTheBestSolution().getFitness();
+            String st = "Generation: " + generationsToPrint.get(i).getTheBestSolution().getGeneration() +
+                    "\n" + "Fitness score: " + df.format(newScore);
+            if (i != 0) {
+                Double lastScore = generationsToPrint.get(i - 1).getTheBestSolution().getFitness();
+                Double res = new Double(newScore - lastScore);
+                if (res > 0.0) {
+                    st += "\nThe score improved by: " + df.format(res);
+                } else if (res < 0.0) {
+                    st += "\nThe score decreased by: " + df.format(res);
+                } else {
+                    st += "\nThere is no improvement from the previous generation";
                 }
-                previousIdx = i;
-                strings.add(st);
-                strings.add("-----------------------");
             }
+            strings.add(st);
+            strings.add("-----------------------");
         }
+
         if(strings.size() == 0)
         {
             strings.add("The number: " + this.whenToShow + " you have chosen is greater than the current number of generations: " +
