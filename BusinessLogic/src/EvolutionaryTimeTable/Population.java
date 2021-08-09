@@ -46,6 +46,4 @@ public class Population {
     public int hashCode() {
         return Objects.hash(INITIAL_POPULATION, solutions, theBestSolution);
     }
-
-
 }

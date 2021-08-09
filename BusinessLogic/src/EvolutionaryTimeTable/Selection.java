@@ -16,19 +16,9 @@ public class Selection {
                 Double percent = new Double((topPercent * population) / 100);
                 int limit = percent.intValue();
                 List<OptionalSolution> newPopulation = os.stream().distinct().sorted((a,b)->b.getFitness().compareTo(a.getFitness())).limit(limit).collect(Collectors.toList());
-           //     for (int i=0; i<newPopulation.size()-1;i++) {
-            //        if(//newPopulation.get(i).getFitness()==newPopulation.get(i+1).getFitness() &&
-           //                 newPopulation.get(i).getAvgHardRules() == newPopulation.get(i+1).getAvgHardRules() &&
-            //                newPopulation.get(i).getAvgSoftRules() == newPopulation.get(i+1).getAvgSoftRules())
-                    {
-        //                newPopulation.remove(i);
-          //              i--;
-                    }
-          //      }
                 return newPopulation;
             }
         },
-
         ROULETTEWHEEL {
             @Override
             public List<OptionalSolution> selection(int topPercent, int population, List<OptionalSolution> os) {

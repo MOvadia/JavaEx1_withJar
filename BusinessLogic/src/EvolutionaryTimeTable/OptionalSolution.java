@@ -27,27 +27,8 @@ public class OptionalSolution {
                         " ,subject: " + raw.getSubject().getId() +
                         " >" + "\n";
             }
-            //@Override
-            //public Map<DayHour, List<Raw>> getTablePerIdentifier(Map<Integer, Raw>  optionalSolution){return  null;}
         },
         TEACHER {
-           /* @Override
-            public Map<DayHour, List<Raw>> getTablePerIdentifier(Map<Integer, Raw>  optionalSolution){
-                Map<DayHour, List<Raw>> table = new HashMap<>();
-                for (Raw raw : optionalSolution.values()) {
-                    DayHour dayHour = new DayHour(raw.getDay(),raw.getHour());
-                    if(table.get(dayHour) != null) {
-                        table.get(dayHour).add(raw);
-                    }
-                    else{
-                        List<Raw> lRaw = new ArrayList<>();
-                        lRaw.add(raw);
-                        table.put(dayHour, lRaw);
-                    }
-                }
-                return table;
-            }*/
-
             @Override
             public String toString(Map<Integer, Raw>  optionalSolution, TimeTable timeTable)
             {
@@ -107,7 +88,6 @@ public class OptionalSolution {
             }
         };
         public abstract String toString(Map<Integer, Raw>  optionalSolution, TimeTable timeTable);
-       // public abstract Map<DayHour, List<Raw>> getTablePerIdentifier(Map<Integer, Raw> optionalSolution);
     }
     private final int HARD_RULES_WEIGHT;
     private Map<Integer, Raw>  optionalSolution;
@@ -153,8 +133,6 @@ public class OptionalSolution {
         return hoursAmount;
     }
 
-
-
     public void setSolutionToString(String solutionToString) {
         this.solutionToString = SolutionToString.valueOf(solutionToString);
     }
@@ -176,7 +154,6 @@ public class OptionalSolution {
     }
 
     public void calculateFitness(TimeTable timeTable){
-        //Map<Rule, Double> fitnessForRule = new HashMap<>();
         for (Rule rule: this.rules.values()) {
             if (optionalSolution.size() < timeTable.getDays() * timeTable.getHours() * timeTable.getMinCT())
             {
@@ -293,13 +270,11 @@ public class OptionalSolution {
     private double calculateFitnessSatisfactory(Rule rule) {
         double penalty = 0;
         calculateHoursPerClass();
-        //double total = 0;
         double totalFitness = 0;
         for (SchoolClass c: this.classes.values()) {
             penalty = 0;
             for (Study s: c.getStudies()) {
                 SubjectPerClass subjectPerClass = new SubjectPerClass(c, s.getSubject().getId());
-                //total += s.getHours();
                 if(this.hoursAmount.get(subjectPerClass) < s.getHours())
                 {
                     penalty += (((double)this.hoursAmount.get(subjectPerClass) / s.getHours()) * 100);

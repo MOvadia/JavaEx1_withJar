@@ -53,15 +53,10 @@ public class Crossover {
         },
 
         AspectOriented{
-           /* @Override
-            public  List<Raw>[][] createTwoDimensionTable(OptionalSolution optionalSolution, int days, int hours) {
-                return new List[0][];
-            } */
             @Override
             public  Map<Integer, Raw> sortParent(List<Raw> parent, TimeTable timeTable)
             {return new HashMap<>();}
         };
-      //  public abstract  List<Raw>[][] createTwoDimensionTable(OptionalSolution optionalSolution, int days, int hours);
       public abstract  Map<Integer, Raw> sortParent(List<Raw> parent, TimeTable timeTable);
     }
 
@@ -134,6 +129,4 @@ public class Crossover {
         return ",name: " + name +
                 " | cuttingPoints: " + cuttingPoints + '\n';
     }
-
-
 }

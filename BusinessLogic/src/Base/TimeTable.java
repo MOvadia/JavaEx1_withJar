@@ -126,7 +126,6 @@ public class TimeTable {
         }
     }
 
-
     private void checkAndInsertTeachers(List<ETTTeacher> teachers) throws DuplicateValException{
 
         for (ETTTeacher i : teachers) {

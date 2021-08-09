@@ -16,11 +16,8 @@ public class Rule {
     private int ruleScore = 0;
 
     public Rule(ETTRule rule){
-     //   List<String> temp= new ArrayList<>();
-        //String configuration = rule.getETTConfiguration();
         this.type = Type.valueOf(rule.getType().toUpperCase());
         this.id = Id.valueOf(rule.getETTRuleId());
-       // this.configuration = StringToMap.convert(configuration);
     }
 
     public int getRuleScore() {
@@ -34,10 +31,6 @@ public class Rule {
     public Id getId() {
         return id;
     }
-
-   // public List<String> getConfiguration() {
-    //    return configuration;
-   // }
 
     public Type getType() {
         return type;
