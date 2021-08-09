@@ -11,6 +11,6 @@ public class SomethingDoesntExistException extends RuntimeException{
 
         @Override
         public String getMessage() {
-            return "An " + val + " doesn't exist in the system.";
+            return "An " + val + " doesn't exist in the system at this time. Please try again later.";
         }
 }

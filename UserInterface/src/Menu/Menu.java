@@ -13,12 +13,11 @@ public class Menu {
     private SystemEngine systemEngine = new Engine();
     private Scanner userInput = new Scanner(System.in);
     int operation;
-    private String errNum = "Input is invalid, pleas enter a integer\n";
+    private String errNum = "Input is invalid, please enter a integer\n";
     private String errRange = "Input is invalid, please enter a number between 1 to";
     private String errLoadXML = "You must first upload an XML file\n";
     private int numOfGenerations;
     private int whenToShow;
-  //  private boolean confirm = false;
 
     public void startMenu() {
         Boolean toContinue = true;
@@ -92,7 +91,7 @@ public class Menu {
         while (toContinue) {
             System.out.println("please enter the number of generations (must be a integer > " + this.systemEngine.getMinNumGeneration() + "): ");
             numOfGenerations = stringToInt();
-            System.out.println("Please enter how many generations would you like the information to be displayed? (must be a integer > 0): ");
+            System.out.println("Please enter how many generations would you like the information to be displayed in section 5 (must be a integer > 0): ");
             whenToShow = stringToInt();
             try {
                 systemEngine.startEvolutionAlgorithm(numOfGenerations,whenToShow, confirm);
