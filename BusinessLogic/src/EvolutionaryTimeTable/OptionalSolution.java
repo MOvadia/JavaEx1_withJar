@@ -384,16 +384,19 @@ public class OptionalSolution {
     }
 
     public String rulesFitnessToString(){
+        DecimalFormat df = new DecimalFormat("###.#");
         String ruleStr = "Generation: " + this.getGeneration() + "\nThe Rules that tested:\n";
         for (Rule rule: this.fitnessForRule.keySet()) {
-            ruleStr += rule.toString() + "rule score: " + this.fitnessForRule.get(rule) + "\n";
+            Double ruleScore = new Double(this.fitnessForRule.get(rule));
+            Double score = 100.0 - ruleScore;
+            ruleStr += rule.toString() + "rule score: " + df.format(score) + "\n";
         }
         return ruleStr;
     }
 
     public String evaluationToString(){
         DecimalFormat df = new DecimalFormat("###.#");
-        String title = "fitness score: " + this.getFitness() + '\n' + "Average hard rules: " + df.format(this.avgHardRules)
+        String title = "fitness score: " + df.format(this.getFitness()) + '\n' + "Average hard rules: " + df.format(this.avgHardRules)
                 + '\n' + "Average soft rules: " + df.format(this.avgSoftRules) + '\n' + rulesFitnessToString();
         return title;
     }

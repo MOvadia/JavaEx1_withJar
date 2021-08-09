@@ -10,6 +10,7 @@ import Exceptions.WrongValueException;
 
 import javax.xml.bind.JAXBException;
 import java.io.FileNotFoundException;
+import java.text.DecimalFormat;
 import java.util.*;
 
 public class Engine implements SystemEngine{
@@ -244,18 +245,19 @@ public class Engine implements SystemEngine{
                 }
             }
         }
+        DecimalFormat df = new DecimalFormat("###.#");
         for (int i = 1; i <= size; i++) {
             if (i % this.whenToShow == 0) {
                 Double newScore = this.evolutionEngine.getGenerations().get(i).getTheBestSolution().getFitness();
                 String st = "Generation: " + this.evolutionEngine.getGenerations().get(i).getTheBestSolution().getGeneration() +
-                        "\n" + "Fitness score: " + newScore;
+                        "\n" + "Fitness score: " + df.format(newScore);
                 if (previousIdx != 0) {
                     Double lastScore = this.evolutionEngine.getGenerations().get(previousIdx).getTheBestSolution().getFitness();
                     Double res =new Double(newScore - lastScore);
                     if (res > 0.0) {
-                        st += "\nThe score improved by: " + res;
+                        st += "\nThe score improved by: " + df.format(res);
                     } else if (res < 0.0) {
-                        st += "\nThe score decreased by: " + res;
+                        st += "\nThe score decreased by: " + df.format(res);
                     }
                     else {
                         st += "\nThere is no improvement from the previous generation";
